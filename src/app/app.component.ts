@@ -1,32 +1,78 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from "@angular/core";
+import { MatDialog } from "@angular/material/dialog";
+import {
+  MatSelectionList,
+  MatSelectionListChange,
+} from "@angular/material/list";
+import { NotificationService } from "./notification/notification.service";
+import { NotificationStatus } from "./notification/notification.types";
+import { ReminderFormDialogComponent } from "./reminder-form-dialog.component";
+import { Todo } from "./types";
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   template: `
-    <!--The content below is only a placeholder and can be replaced.-->
-    <div style="text-align:center" class="content">
-      <h1>
-        Welcome to {{title}}!
-      </h1>
-      <span style="display: block">{{ title }} app is running!</span>
-      <img width="300" alt="Angular Logo" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
+    <mat-toolbar color="primary">
+      <h2>Reminder</h2>
+    </mat-toolbar>
+    <mat-card class="center-page-container">
+      <div class="like-row">
+        <h3>Reminders</h3>
+        <button mat-button color="error" (click)="deleteAllDone()">
+          Delete All Done
+        </button>
+      </div>
+      <mat-selection-list
+        (selectionChange)="handleReminderSelectionChange($event)"
+      >
+        <mat-list-option *ngFor="let reminder of reminders" [value]="reminder">
+          {{ reminder.title }}
+        </mat-list-option>
+      </mat-selection-list>
+    </mat-card>
+    <div class="fab-container">
+      <button (click)="openReminderFormDialog()" mat-fab color="warn">
+        <mat-icon fontIcon="add"></mat-icon>
+      </button>
     </div>
-    <h2>Here are some links to help you start: </h2>
-    <ul>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://angular.io/cli">CLI Documentation</a></h2>
-      </li>
-      <li>
-        <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-      </li>
-    </ul>
-    
   `,
-  styles: []
 })
 export class AppComponent {
-  title = 'reminder';
+  reminders: Todo[] = [];
+
+  constructor(
+    public dialog: MatDialog,
+    private notificationService: NotificationService
+  ) {}
+
+  openReminderFormDialog() {
+    const dialogRef = this.dialog.open(ReminderFormDialogComponent);
+    dialogRef.afterClosed().subscribe((data: Todo) => {
+      if (data) {
+        this.reminders.push(data);
+        this.notificationService.notify({
+          description: "Added: " + data.title,
+          status: NotificationStatus.Success,
+        });
+      }
+    });
+  }
+
+  handleReminderSelectionChange(event: MatSelectionListChange) {
+    event.options.forEach(
+      (option) => ((option.value as Todo).done = option.selected)
+    );
+    this.notificationService.notify({
+      description: `${event.options.length} task/tasks status changed`,
+      status: NotificationStatus.Info,
+    });
+  }
+
+  deleteAllDone() {
+    this.reminders = this.reminders.filter((i) => !i.done);
+    this.notificationService.notify({
+      description: "All of done tasks removed",
+      status: NotificationStatus.Danger,
+    });
+  }
 }

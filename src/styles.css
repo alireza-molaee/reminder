@@ -1,1 +1,37 @@
 /* You can add global styles to this file, and also import other style files */
+
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+  background: #303030;
+}
+
+.form {
+  width: 500px;
+}
+
+.control {
+  width: 100%;
+}
+
+.center-page-container {
+  width: 800px;
+  margin-right: auto;
+  margin-left: auto;
+  margin-top: 50px;
+}
+
+.fab-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+.like-row {
+  display: flex;
+  justify-content: space-between;
+}
